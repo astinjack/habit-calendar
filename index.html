@@ -1,110 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Habit Calendar</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
-  <link rel="apple-touch-icon" href="icon-512.png">
-  <meta name="theme-color" content="#007bff">
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f4f4f9; }
-    header { background: #007bff; color: white; padding: 15px; font-size: 20px; }
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; padding: 10px; }
-    .day { background: white; padding: 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .done { background: #28a745; color: white; }
-    .missed { background: #dc3545; color: white; }
-    #month { margin: 10px; font-size: 18px; }
-    button { padding: 8px 12px; margin: 5px; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Calendar</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50"/>
 </head>
 <body>
-  <header>Habit Calendar</header>
-  <div>
-    <button id="prev">&#9664;</button>
-    <span id="month"></span>
-    <button id="next">&#9654;</button>
-  </div>
-  <div class="calendar" id="calendar"></div>
 
-  <script>
-    const calendar = document.getElementById("calendar");
-    const monthLabel = document.getElementById("month");
-    let today = new Date();
-    let currentMonth = today.getMonth();
-    let currentYear = today.getFullYear();
+    <div class="container">
+        <header>
+            <h1 id="month-year">Month Year</h1>
+        </header>
+        <div class="calendar" id="calendar">
+            </div>
+    </div>
 
-    function renderCalendar(month, year) {
-      calendar.innerHTML = "";
-      const firstDay = new Date(year, month).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      monthLabel.textContent = new Date(year, month).toLocaleString("default", { month: "long", year: "numeric" });
+    <script src="script.js"></script>
+    <script>
+        // Register the service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                }).catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
 
-      for (let i = 0; i < firstDay; i++) {
-        calendar.innerHTML += `<div></div>`;
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateKey = `${year}-${month+1}-${day}`;
-        const status = localStorage.getItem(dateKey) || "";
-        calendar.innerHTML += `<div class="day ${status}" data-date="${dateKey}">${day}</div>`;
-      }
-
-      document.querySelectorAll(".day").forEach(dayEl => {
-        dayEl.addEventListener("click", () => {
-          const date = dayEl.dataset.date;
-          if (dayEl.classList.contains("done")) {
-            dayEl.classList.remove("done");
-            dayEl.classList.add("missed");
-            localStorage.setItem(date, "missed");
-          } else if (dayEl.classList.contains("missed")) {
-            dayEl.classList.remove("missed");
-            localStorage.removeItem(date);
-          } else {
-            dayEl.classList.add("done");
-            localStorage.setItem(date, "done");
-          }
-        });
-      });
-    }
-
-    document.getElementById("prev").onclick = () => {
-      currentMonth--;
-      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-      renderCalendar(currentMonth, currentYear);
-    };
-    document.getElementById("next").onclick = () => {
-      currentMonth++;
-      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-      renderCalendar(currentMonth, currentYear);
-    };
-
-    renderCalendar(currentMonth, currentYear);
-
-    // Register service worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
-    }
-
-    // Notification reminder at 11 PM
-    if ("Notification" in window && Notification.permission !== "denied") {
-      Notification.requestPermission();
-    }
-
-    function scheduleReminder() {
-      let now = new Date();
-      let eleven = new Date();
-      eleven.setHours(23, 0, 0, 0);
-      if (now > eleven) eleven.setDate(eleven.getDate() + 1);
-      let timeout = eleven - now;
-      setTimeout(() => {
-        new Notification("Habit Reminder", { body: "Did you complete your tasks today?" });
-        scheduleReminder();
-      }, timeout);
-    }
-    scheduleReminder();
-  </script>
 </body>
 </html>
